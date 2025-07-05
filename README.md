@@ -1,0 +1,187 @@
+# PASR：基于 PyTorch 的自动语音识别框架
+
+PASR（PyTorch Automatic Speech Recognition）一个灵活可扩展的端到端自动语音识别（ASR）框架，基于 PyTorch 实现，支持流式与非流式模式、多种模型结构、数据增强、实验管理及多平台部署。
+
+## 本项目使用的环境：
+ - Miniconda 3
+ - Python 3.11
+ - Pytorch 2.7.1
+ - Windows 11
+
+## 🌟 主要特性
+
+- **多种模型结构**：Conformer、Efficient Conformer、DeepSpeech2、Squeezeformer、Transformer 等
+- **多模式推理**：流式（实时）与非流式（离线）两种工作模式
+- **数据增强**：支持多种数据增强方法，包含噪声增强、混响增强、语速增强、音量增强、重采样增强、位移增强、SpecAugmentor、SpecSubAugmentor等。
+- **实验管理**：训练日志、TensorBoard 可视化、超参数自动记录
+- **多种部署方式**：导出为 TorchScript、ONNX；支持 gRPC/REST 服务和 Web GUI
+- **易扩展**：模块化设计，方便添加新模型、解码器或数据处理流程
+- **预处理**：声学特征提取（Mel-Spectrogram）、归一化、增量提取
+
+## 📦 环境搭建与安装
+
+```bash
+# 1. 克隆仓库并进入目录
+git clone https://github.com/yourusername/PASR.git && cd PASR
+
+# 2. 创建并激活 Conda 环境
+conda create -n pasr python=3.11 -y
+conda activate pasr
+
+# 3. 安装依赖
+pip install -r requirements.txt
+```
+
+## 1. 数据下载与预处理
+
+```bash
+支持多种公开语音数据集，如 AISHELL-1、LibriSpeech、THCHS-30、WenetSpeech 等：
+
+# 以 THCHS-30 为例：
+# 下载数据集
+https://aistudio.baidu.com/datasetdetail/38012/0
+# 将压缩包位置用filepath指定，运行代码自动跳过下载，直接解压文件文本生成数据列表
+python thchs_30.py --filepath = "D:\\Download\\data_thchs30.tgz"
+# 最后执行下面的数据集处理程序，这个程序是把我们的数据集生成JSON格式的训练和测试数据列表，分别是`test.jsonl、train.jsonl`。然后使用Sentencepiece建立词汇表模型，建立的词汇表模型默认存放在`dataset/vocab_model`目录下。最后计算均值和标准差用于归一化，默认使用全部的语音计算均值和标准差，并将结果保存在`mean_istd.json`中。
+python create_data.py
+```
+
+## 2. 配置文件详解
+
+```bash
+所有配置集中在 `configs/` 目录下，以 YAML 格式存储。
+
+```yaml
+# configs/conformer.yaml 示例
+model:
+  type: conformer       # 模型类型
+  input_dim: 80         # 输入特征维度
+  encoder:
+    num_layers: 12      # 编码器层数
+    d_model: 256        # 隐层维度
+train:
+  epochs: 100           # 最大训练轮数
+  batch_size: 32        # 每卡 batch size
+  learning_rate: 1e-3   # 初始学习率
+  optimizer: adamw      # 优化器选择
+  scheduler:
+    type: cosine        # 学习率调度器
+    warmup_steps: 2500  # 预热步数
+data:
+  train_manifest: data/aishell/manifest/train.tsv
+  val_manifest:   data/aishell/manifest/dev.tsv
+  num_workers: 4       # 数据加载并行数
+logging:
+  output_dir: checkpoints/conformer
+  save_interval: 5     # 每多少 epoch 保存一次模型
+  tensorboard: true    # 是否启用 TensorBoard
+```
+
+## 3. 特征提取与缓存
+
+```bash
+#可预先提取 Mel-Spectrogram 特征并缓存，以加速训练，若未进行，在模型训练该过程中会自动执行
+python extract_features.py 
+```
+
+## 4. 模型训练
+
+```bash
+python train.py
+# 单机多卡训练
+CUDA_VISIBLE_DEVICES=0,1 torchrun --standalone --nnodes=1 --nproc_per_node=2 train.py
+
+**训练过程中可视化**：
+#在训练过程中，程序会使用VisualDL记录训练结果，可以通过在根目录执行以下命令启动VisualDL
+visualdl --logdir=log --host=0.0.0.0
+#然后再浏览器上访问`http://localhost:8040`可以查看结果显示
+```
+## 5. 模型评估
+
+```bash
+python eval.py --resume_model=models/ConformerModel_fbank/best_model/
+```
+
+## 6. 模型导出
+
+```bash
+python export_model.py
+```
+
+## 7. 添加标点符号模型
+
+```bash
+#下载标点符号的模型放在`models/`目录下。
+https://pan.baidu.com/s/1GgPU753eJd4pZ1LxDjeyow?pwd=7wof
+```
+
+## 8. 本地预测
+
+```bash
+#非流式
+python infer_path.py --audio_path=./dataset/test.wav
+#流式
+python infer_path.py --audio_path=./dataset/test.wav --real_time_demo True
+#添加标点符号
+python infer_path.py --audio_path=./dataset/test.wav --use_punc=True
+```
+
+## 9. Web部署模型
+
+```bash
+#在服务器执行下面命令，创建一个Web服务，通过提供HTTP接口来实现语音识别。启动服务之后，如果在本地运行的话，在浏览器上访问`http://localhost:5000`。打开页面之后可以选择上传长音或者短语音音频文件，也可以在页面上直接录音，录音完成之后点击上传，播放功能只支持录音的音频。
+pip install aiofiles -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install fastapi -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install python-multipart -i https://pypi.tuna.tsinghua.edu.cn/simple
+python infer_server.py
+```
+
+## 10. GUI部署模型
+
+```bash
+#通过打开页面，在页面上选择长语音或者短语音进行识别，也支持录音识别实时识别，带播放音频功能。该程序可以在本地识别，也可以通过指定服务器调用服务器的API进行识别。
+pip install pyaudio -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install websockets -i https://pypi.tuna.tsinghua.edu.cn/simple
+python infer_gui.py
+```
+
+
+## 🗂️ 项目目录结构
+
+```plain
+PASR/
+├── configs/            # YAML 配置文件目录
+├── download_data/      # 数据集下载脚本
+├── create_data.py      # 数据预处理
+├── extract_features.py # 特征提取脚本
+├── train.py            # 训练主程序
+├── infer_path.py       # 离线推理脚本
+├── infer_server.py     # Web界面部署
+├── infer_gui.py        # GUI界面部署
+├── export_model.py     # 模型导出
+├── pasr/               # 核心模块：数据加载、模型定义、解码器、工具函数
+├── requirements.txt    # Python 依赖列表
+├── checkpoints/        # 训练中保存模型及日志
+├── data/               # 原始及处理后数据
+├── deploy/             # 导出后的部署模型
+└── tools/              # 附加工具：语言模型构建、音频增强脚本
+```
+
+---
+
+## 📈 评估指标
+
+- **WER**（Word Error Rate）: 单词错误率
+- **CER**（Character Error Rate）: 字符错误率
+
+执行 `infer_path.py` 后，可在标准输出中查看详细结果。
+
+---
+
+## 📬 联系 & 许可证
+
+- **作者**: Your Name ([your.email@example.com](mailto\:your.email@example.com))
+- **License**: MIT
+- 如有疑问或建议，请提交 issue 或发送邮件至上述邮箱。
+

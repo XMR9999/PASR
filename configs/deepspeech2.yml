@@ -1,0 +1,101 @@
+# 编码器
+encoder_conf:
+  # 使用的编码器
+  encoder_name: 'CRNNEncoder'
+  # 编码器参数
+  encoder_args:
+    num_rnn_layers: 5
+    rnn_size: 1024  # RNN的隐层大小，对于大数据可以设置设置大一些，如：2048
+    use_gru: False
+
+model_conf:
+  # 所使用的模型
+  model: 'DeepSpeech2Model'
+  # 模型参数
+  model_args:
+    # 是否为流式模型
+    streaming: True
+
+# 数据集参数
+dataset_conf:
+  dataset:
+    # 过滤最短的音频长度
+    min_duration: 0.5
+    # 过滤最长的音频长度，当为-1的时候不限制长度
+    max_duration: 20
+    # 音频的采样率
+    sample_rate: 16000
+    # 是否对音频进行音量归一化
+    use_dB_normalization: True
+    # 对音频进行音量归一化的音量分贝值
+    target_dB: -20
+    # 数据列表类型，支持txt、binary
+    manifest_type: 'txt'
+  batch_sampler:
+    # 训练的批量大小
+    batch_size: 16
+    sortagrad: True
+    drop_last: True
+    shuffle: True
+  dataLoader:
+    # 读取数据的线程数量
+    num_workers: 8
+  # 训练数据的数据列表路径
+  train_manifest: 'dataset/train.jsonl'
+  # 测试数据的数据列表路径
+  test_manifest: 'dataset/test.jsonl'
+  # 均值和标准值得json文件路径，后缀 (.json)
+  mean_istd_path: 'dataset/mean_istd.json'
+
+# 数据预处理方法参数
+preprocess_conf:
+  # 音频预处理方法，支持：mfcc、fbank
+  feature_method: 'fbank'
+  # 设置API参数，更参数查看对应API，不清楚的可以直接删除该部分，直接使用默认值。
+  method_args:
+    num_mel_bins: 80
+
+# Token处理方法参数
+tokenizer_conf:
+  # 词汇模型文件夹路径
+  vocab_model_dir: "dataset/vocab_model/"
+  # 制作词汇表的字符类型，支持：char、word、unigram
+  model_type: 'unigram'
+  # 构建词汇表的大小，当model_type为char、word时，为null会使用全部词汇
+  build_vocab_size: 5000
+  # 非语言符号列表
+  non_linguistic_symbols: [ ]
+  # 是否移除非语言符号
+  remove_non_linguistic_symbols: False
+
+# 优化方法参数配置
+optimizer_conf:
+  # 优化方法
+  optimizer: 'Adam'
+  # 优化方法参数
+  optimizer_args:
+    lr: 0.001
+    weight_decay: !!float 1.e-6
+  # 学习率衰减函数，支持Pytorch支持的和项目提供的额外方法
+  scheduler: 'WarmupLR'
+  # 学习率衰减函数参数
+  scheduler_args:
+    # 学习率预热步数，对应的是step/accum_grad
+    warmup_steps: 25000
+    # 最小学习率
+    min_lr: 1.e-5
+
+# 训练参数配置
+train_conf:
+  # 是否开启自动混合精度
+  enable_amp: False
+  # 是否使用Pytorch2.0的编译器
+  use_compile: False
+  # 梯度裁剪
+  grad_clip: 5.0
+  # 梯度累加，变相扩大batch_size的作用
+  accum_grad: 4
+  # 训练的轮数
+  max_epoch: 200
+  # 多少batch打印一次日志
+  log_interval: 100

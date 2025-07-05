@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*build*/
+*dist*/
+*.egg-info/
+*.spec
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+pytorch_env/
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Datasets - 不要上传数据集
+dataset/
+data/
+
+# Models - 不要上传模型文件
+models/
+output/
+checkpoints/
+
+# Logs
+log/
+*.log

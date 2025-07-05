@@ -1,0 +1,34 @@
+# 解码器参数
+ctc_prefix_beam_search_args:
+  # 解码搜索大小
+  beam_size: 10
+  # 多线程解码数量
+  num_workers: 4
+
+# 解码器参数
+attention_rescoring_args:
+  # 解码搜索大小
+  beam_size: 10
+  # 多线程解码数量
+  num_workers: 4
+  # CTC解码器权重
+  ctc_weight: 0.3
+  # 反向解码器权重
+  reverse_weight: 1.0
+
+# 解码器参数
+ctc_beam_search_args:
+  # 集束搜索解码相关参数，搜索大小，范围:[5, 500]
+  beam_size: 300
+  # 集束搜索解码相关参数，LM系数
+  alpha:  2.2
+  # 集束搜索解码相关参数，WC系数
+  beta: 4.3
+  # 集束搜索解码相关参数，剪枝的概率
+  cutoff_prob: 0.99
+  # 集束搜索解码相关参数，剪枝的最大值
+  cutoff_top_n: 40
+  # 集束搜索解码相关参数，使用CPU数量
+  num_processes: 8
+  # 集束搜索解码相关参数，语言模型文件路径
+  language_model_path: "lm/zh_giga.no_cna_cmn.prune01244.klm"
