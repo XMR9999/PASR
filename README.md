@@ -203,9 +203,3 @@ PASR/
 
 ---
 
-## 📬 联系 & 许可证
-
-- **作者**: Your Name ([your.email@example.com](mailto\:your.email@example.com))
-- **License**: MIT
-- 如有疑问或建议，请提交 issue 或发送邮件至上述邮箱。
-

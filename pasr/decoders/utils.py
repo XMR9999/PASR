@@ -1,5 +1,3 @@
-# @Time    : 2024-09-05
-# @Author  : yeyupiaoling
 import math
 from typing import List
 

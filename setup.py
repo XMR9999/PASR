@@ -28,14 +28,13 @@ if __name__ == "__main__":
         name='pasr',
         packages=find_packages(exclude='download_data/'),
         package_data={'': ['configs/*']},
-        author='yeyupiaoling',
         version=PASR_VERSION,
         install_requires=parse_requirements('./requirements.txt'),
         description='Automatic speech recognition toolkit on Pytorch',
         long_description=readme(),
         long_description_content_type='text/markdown',
-        url='https://github.com/yeyupiaoling/PASR',
-        download_url='https://github.com/yeyupiaoling/PASR.git',
+        url='https://github.com/XMR9999/PASR',
+        download_url='https://github.com/XMR9999/PASR.git',
         keywords=['asr', 'pytorch'],
         classifiers=[
             'Intended Audience :: Developers',
@@ -50,6 +49,5 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 3.11',
             'Topic :: Utilities'
         ],
-        license='Apache License 2.0',
         ext_modules=[])
     shutil.rmtree('./pasr/configs/', ignore_errors=True)
