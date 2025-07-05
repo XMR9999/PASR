@@ -22,7 +22,7 @@ PASR（PyTorch Automatic Speech Recognition）一个灵活可扩展的端到端�
 
 ```bash
 # 1. 克隆仓库并进入目录
-git clone https://github.com/yourusername/PASR.git && cd PASR
+git clone https://github.com/XMR9999/PASR.git && cd PASR
 
 # 2. 创建并激活 Conda 环境
 conda create -n pasr python=3.11 -y
