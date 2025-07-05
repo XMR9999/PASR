@@ -118,6 +118,7 @@ CUDA_VISIBLE_DEVICES=0,1 torchrun --standalone --nnodes=1 --nproc_per_node=2 tra
 
 **训练过程中可视化**：
 #在训练过程中，程序会使用VisualDL记录训练结果，可以通过在根目录执行以下命令启动VisualDL
+pip install visualdl
 visualdl --logdir=log --host=0.0.0.0
 #然后再浏览器上访问`http://localhost:8040`可以查看结果显示
 ```
