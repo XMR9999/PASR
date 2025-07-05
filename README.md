@@ -188,9 +188,8 @@ PASR/
 ├── pasr/               # 核心模块：数据加载、模型定义、解码器、工具函数
 ├── requirements.txt    # Python 依赖列表
 ├── checkpoints/        # 训练中保存模型及日志
-├── data/               # 原始及处理后数据
-├── deploy/             # 导出后的部署模型
-└── tools/              # 附加工具：语言模型构建、音频增强脚本
+├── dataset/            # 原始及处理后数据
+└── models/             # 导出后的部署模型
 ```
 
 ---
