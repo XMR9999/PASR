@@ -50,31 +50,56 @@ python create_data.py
 
 ```bash
 所有配置集中在 `configs/` 目录下，以 YAML 格式存储。
+这些文件共同定义了从数据处理、模型结构到训练和解码的每一个环节。
 
 ```yaml
-# configs/conformer.yaml 示例
-model:
-  type: conformer       # 模型类型
-  input_dim: 80         # 输入特征维度
-  encoder:
-    num_layers: 12      # 编码器层数
-    d_model: 256        # 隐层维度
-train:
-  epochs: 100           # 最大训练轮数
-  batch_size: 32        # 每卡 batch size
-  learning_rate: 1e-3   # 初始学习率
-  optimizer: adamw      # 优化器选择
-  scheduler:
-    type: cosine        # 学习率调度器
-    warmup_steps: 2500  # 预热步数
-data:
-  train_manifest: data/aishell/manifest/train.tsv
-  val_manifest:   data/aishell/manifest/dev.tsv
-  num_workers: 4       # 数据加载并行数
-logging:
-  output_dir: checkpoints/conformer
-  save_interval: 5     # 每多少 epoch 保存一次模型
-  tensorboard: true    # 是否启用 TensorBoard
+# configs/conformer.yaml
+# 1. 模型结构定义
+encoder_conf:
+  encoder_name: 'ConformerEncoder' # 使用的编码器类型
+  encoder_args:
+    output_size: 256               # 模型隐层维度 (d_model)
+    attention_heads: 4             # 注意力头的数量
+    num_blocks: 12                 # 编码器层数
+
+decoder_conf:
+  decoder_name: 'BiTransformerDecoder' # 使用的解码器类型
+  decoder_args:
+    num_blocks: 3                  # 解码器层数
+
+model_conf:
+  model: 'ConformerModel'          # 最终使用的模型组合
+  model_args:
+    streaming: True                # 是否为流式模型
+    ctc_weight: 0.3                # CTC损失的权重
+
+# 2. 数据与预处理定义
+dataset_conf:
+  train_manifest: 'dataset/train.jsonl' # 训练数据列表路径
+  test_manifest: 'dataset/test.jsonl'  # 测试数据列表路径
+  batch_sampler:
+    batch_size: 16                 # 训练时的批量大小
+  dataLoader:
+    num_workers: 8                 # 数据加载的并行进程数
+
+preprocess_conf:
+  feature_method: 'fbank'          # 音频特征提取方法
+  method_args:
+    num_mel_bins: 80               # Mel频谱的维度
+
+# 3. 训练策略定义
+optimizer_conf:
+  optimizer: 'Adam'                # 优化器选择
+  optimizer_args:
+    lr: 0.001                      # 初始学习率
+  scheduler: 'WarmupLR'            # 学习率调度器
+  scheduler_args:
+    warmup_steps: 25000            # 学习率预热步数
+
+train_conf:
+  max_epoch: 200                   # 最大训练轮数
+  accum_grad: 4                    # 梯度累积步数，用于变相扩大batch_size
+  log_interval: 100                # 每隔多少步打印一次日志
 ```
 
 ## 3. 特征提取与缓存
@@ -172,10 +197,9 @@ PASR/
 
 ## 📈 评估指标
 
-- **WER**（Word Error Rate）: 单词错误率
 - **CER**（Character Error Rate）: 字符错误率
 
-执行 `infer_path.py` 后，可在标准输出中查看详细结果。
+执行 `eval.py` 后，可在标准输出中查看详细结果。
 
 ---
 
